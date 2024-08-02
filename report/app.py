@@ -7,10 +7,10 @@ from flask import send_from_directory
 app = Flask(__name__)
 
 def create_mongodb_connection():
-    user = 's2210036'
-    pwd = '2PpSxy3R'
-    client = pymongo.MongoClient('mongodb://'+user+':'+pwd+'@dbs1.slis.tsukuba.ac.jp:27018')
-    db = client['s2210036']
+    user = '*******'
+    pwd = '*****'
+    client = pymongo.MongoClient('mongodb://'+user+':'+pwd+'******')
+    db = client['****']
     return db
 
 def insert_todo(date, name, done):
