@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>詳細ページ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="static/style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<main>
+    <h1>GoogleカレンダーTODOリストもどき</h1>
+    <a href="calendar">【カレンダーへ】</a>
+    <h2>タスクの追加</h2>
+    <div id="input">
+        <form action="/add" method="POST">
+            <label>TODO: <input id="todo" name="todo" required="required"></label><br>
+            <label>期日: <input type="date" name="date" required="required"></label><br>
+            <button id="submit">登録</button>
+        </form>
+    </div>
+
+    <fieldset>
+        <legend>タスク一覧</legend>
+        <table>
+            <tr>
+                <th id="todoLabel">TODO</th>
+                <th id="dateLabel">期日</th>
+                <th>完了</th>
+                <th></th>
+            </tr>
+            {% for todo in todos %}
+            <tr>
+                <td>{{ todo.name }}</td>
+                <td>{{ todo.tododate }}</td>
+                <td>
+                    <input type="checkbox" class="complete-checkbox" data-id="{{ todo._id }}" {% if todo.done %}checked{% endif %}>
+                </td>
+                <td>
+                    <button class="delete-button" data-id="{{ todo._id }}">削除</button>
+                </td>
+            </tr>
+            {% endfor %}
+    </table>
+    </fieldset>
+    <a href="http://localhost:11026/">トップページへ</a>
+
+    <script>
+        $(document).ready(function() {
+            $(".complete-checkbox").on("change", function() {
+                var todoId = $(this).data("id");
+                var url = $(this).is(":checked") ? "/check" : "/uncheck";
+                $.ajax({
+                    url: url,
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({ id: todoId }),
+                    success: function(response) {
+                        console.log(response);
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+            $(".delete-button").on("click", function() {
+        var todoId = $(this).data("id");
+        $.ajax({
+            url: "/delete",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify({ id: todoId }),
+            success: function(response) {
+                // 削除成功時の処理
+                $(this).closest('tr').remove(); // 削除ボタンの親要素（行）を削除
+                console.log(response);
+                // ページをリロード
+                location.reload();
+            },
+            error: function(error) {
+                console.log(error);
+            }
+        });
+    });
+        });
+    </script>
+</main>
+</body>
+</html>

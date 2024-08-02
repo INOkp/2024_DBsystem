@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.css' rel='stylesheet' />
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.0/main.min.js'></script>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <div id="calendar"></div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let calendarEl = document.getElementById('calendar');
+
+            // サーバーから渡されたtodosデータを埋め込む
+            let todos = {{ todos | tojson | safe }};
+
+            // todoデータからカレンダーイベントを生成
+            let events = todos.map(todo => ({
+                title: todo.name,
+                start: todo.tododate,
+                backgroundColor: todo.done ? 'green' : 'red',
+                borderColor: todo.done ? 'darkgreen' : 'darkred',
+                extendedProps: {
+                    todo_id: todo._id,
+                    done: todo.done
+                }
+            }));
+
+            let calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                events: events,
+                eventContent: function(arg) {
+                    let checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'complete-checkbox';
+                    checkbox.dataset.id = arg.event.extendedProps.todo_id;
+                    checkbox.checked = arg.event.extendedProps.done;
+                    checkbox.onchange = function() {
+                        let url = this.checked ? "/check" : "/uncheck";
+                        fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ id: this.dataset.id })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+                            location.reload(); // ページをリロード
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                    };
+
+                    let content = document.createElement('div');
+                    content.textContent = arg.event.title;
+                    content.appendChild(checkbox);
+                    return { domNodes: [content] };
+                }
+            });
+
+            calendar.render();
+        });
+    </script>
+</body>
+</html>
